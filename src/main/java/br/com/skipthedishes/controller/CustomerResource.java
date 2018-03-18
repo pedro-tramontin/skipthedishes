@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Base64;
+
 @RestController
 @RequestMapping(value = "/Customer", produces = MediaType.APPLICATION_JSON_VALUE)
 public class CustomerResource {
@@ -18,8 +20,14 @@ public class CustomerResource {
     private CustomerRepository customerRepository;
 
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<Long> create(@RequestBody CustomerEntity customerEntity) {
-        return ResponseEntity.ok(customerRepository.save(customerEntity).getId());
+    public ResponseEntity<String> create(@RequestBody CustomerEntity customerEntity) {
+        CustomerEntity savedEntity = customerRepository.save(customerEntity);
+
+        String basicAuth = savedEntity.getEmail() + ":" + savedEntity.getPassword();
+
+        String base64auth = Base64.getEncoder().encodeToString(basicAuth.getBytes());
+
+        return ResponseEntity.ok(base64auth);
     }
 
 

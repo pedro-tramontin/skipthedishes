@@ -2,8 +2,6 @@ package br.com.skipthedishes.security;
 
 import br.com.skipthedishes.entity.CustomerEntity;
 import br.com.skipthedishes.repository.CustomerRepository;
-import com.sun.org.apache.xml.internal.security.exceptions.Base64DecodingException;
-import com.sun.org.apache.xml.internal.security.utils.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
@@ -11,6 +9,7 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Base64;
 
 public class AuthKeyInterceptor extends HandlerInterceptorAdapter {
 
@@ -36,19 +35,15 @@ public class AuthKeyInterceptor extends HandlerInterceptorAdapter {
         if (paramValue != null && !paramValue.isEmpty()) {
             String base64key = paramValue.replace("Basic", "").trim();
 
-            try {
-                byte[] decodedKey = Base64.decode(base64key);
+            byte[] decodedKey = Base64.getDecoder().decode(base64key);
 
-                String[] emailAndPass = new String(decodedKey).split(":");
+            String[] emailAndPass = new String(decodedKey).split(":");
 
-                CustomerEntity customerEntity = customerRepository.findByEmailAndPassword(emailAndPass[0], emailAndPass[1]);
-                if (customerEntity != null) {
-                    AuthKeyThreadLocal.setAuthKey(customerEntity.getId());
+            CustomerEntity customerEntity = customerRepository.findByEmailAndPassword(emailAndPass[0], emailAndPass[1]);
+            if (customerEntity != null) {
+                AuthKeyThreadLocal.setAuthKey(customerEntity.getId());
 
-                    return true;
-                }
-            } catch (Base64DecodingException e) {
-                throw new IOException("Basic Authorization Invalid");
+                return true;
             }
         }
 

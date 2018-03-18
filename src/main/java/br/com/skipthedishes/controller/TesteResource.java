@@ -1,16 +1,15 @@
 package br.com.skipthedishes.controller;
 
-import br.com.skipthedishes.entity.CousineEntity;
-import br.com.skipthedishes.entity.ProductEntity;
-import br.com.skipthedishes.entity.StoreEntity;
-import br.com.skipthedishes.repository.CousineRepository;
-import br.com.skipthedishes.repository.ProductRepository;
-import br.com.skipthedishes.repository.StoreRepository;
+import br.com.skipthedishes.entity.*;
+import br.com.skipthedishes.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.ArrayList;
+import java.util.Date;
 
 @RestController
 @RequestMapping("/teste")
@@ -25,8 +24,17 @@ public class TesteResource {
     @Autowired
     private ProductRepository productRepository;
 
+    @Autowired
+    private CustomerRepository customerRepository;
+
+    @Autowired
+    private OrderRepository orderRepository;
+
+    @Autowired
+    private OrderItemRepository orderItemRepository;
+
     @RequestMapping(method = RequestMethod.GET)
-    public void insertData() {
+    public ResponseEntity<String> insertData() {
         CousineEntity cousine1 = cousineRepository.save(new CousineEntity("Chinese"));
         CousineEntity cousine2 = cousineRepository.save(new CousineEntity("Pizza"));
         CousineEntity cousine3 = cousineRepository.save(new CousineEntity("Vietnamese"));
@@ -40,34 +48,13 @@ public class TesteResource {
         ProductEntity product1 = productRepository.save(new ProductEntity("Shrimp Tempura", "Fresh shrimp battered and deep fried until golden brown", 10.95, store1));
         ProductEntity product2 = productRepository.save(new ProductEntity("Shrimp with Snow Peas and Cashew", "A delicious combination of fresh shrimp, snow peas, and cashew", 12.5, store1));
         ProductEntity product3 = productRepository.save(new ProductEntity("Special Deep-Fried Fish", "Tilapia fish deep fried until flaky and tender", 12.95, store1));
-        ProductEntity product4 = productRepository.save(new ProductEntity("Guarana", "Guarana KUAT", 1.6, store4));
-        ProductEntity product5 = productRepository.save(new ProductEntity("Tapioca", "Tapioca de mandioca", 1.5, store1));
-        ProductEntity product6 = productRepository.save(new ProductEntity("Bolo", "Bolo de chocolate", 1.4, store2));
-        ProductEntity product7 = productRepository.save(new ProductEntity("Bala", "Bala doce", 1.3, store3));
 
-    }
+        CustomerEntity customerEntity1 = customerRepository.save(new CustomerEntity("user@teste.com", "Test User", "Street test", new Date(), "123456"));
 
-    @RequestMapping(method = RequestMethod.GET, value = "/cousine/{name}")
-    public Long insertCousine(@PathVariable String name) {
-        CousineEntity teste = new CousineEntity(name);
-        cousineRepository.save(teste);
+        OrderEntity orderEntity1 = orderRepository.save(new OrderEntity(new Date(), customerEntity1, "Deliver St", "Contact", store1, new ArrayList<>(), 10.0, "waiting", new Date()));
 
-        return teste.getId();
-    }
+        OrderItemEntity orderItemEntity = orderItemRepository.save(new OrderItemEntity(orderEntity1, product1, 10.0, 1.0, 10.0));
 
-    @RequestMapping(method = RequestMethod.GET, value = "/store/{name}/{address}/{cousineId}")
-    public Long insertStore(@PathVariable String name, @PathVariable String address, @PathVariable Long cousineId) {
-        StoreEntity storeEntity = new StoreEntity(name, address, cousineRepository.findOne(cousineId));
-        storeRepository.save(storeEntity);
-
-        return storeEntity.getId();
-    }
-
-    @RequestMapping(method = RequestMethod.GET, value = "/product/{name}/{description}/{price}/{storeId}")
-    public Long insertProduct(@PathVariable String name, @PathVariable String description, @PathVariable Double price, @PathVariable Long storeId) {
-        ProductEntity productEntity = new ProductEntity(name, description, price, storeRepository.findOne(storeId));
-        productRepository.save(productEntity);
-
-        return productEntity.getId();
+        return ResponseEntity.ok("{\"status\": \"OK\"}");
     }
 }
